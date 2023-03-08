@@ -1,0 +1,6 @@
+data
+.credentials
+env.tfvars
+backend.conf
+.terraform
+.terraform.lock.hcl
