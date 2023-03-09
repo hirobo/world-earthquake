@@ -1,10 +1,7 @@
-prefect==2.8.4
 prefect_gcp[cloud_storage]
 prefect_gcp[secret_manager]
-prefect-gcp==0.3.0
 pandas==1.5.3
 pandas-gbq==0.19.1
 protobuf==4.22.1
 pyarrow==11.0.0
 kaggle==1.5.13
-

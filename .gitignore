@@ -5,4 +5,9 @@ backend.conf
 .terraform
 .terraform.lock.hcl
 
+.env
+
 venv
+notebook
+
+__pycache__
