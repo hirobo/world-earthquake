@@ -100,6 +100,45 @@ prefect agent start -p default-agent-pool
 From the Prefect Cloud UI, run the flow `world-earthquake: load data from Kaggle and upload to GCS/web_to_gcs` then  `world-earthquake: update BigQUery table/gcs_to_bq`.
 
 ### 4 dbt
+Working directory is `dbt`.
 
+#### 4.1 configure dbt
+##### (Option 1) configure profile.yml on dbt cli
+If you will use dbt cli, create profile.yml under ~/.dbt and write like this:
+
+```
+world_earthquake:
+  outputs:
+    dev:
+      dataset: world_earthquake_dbt
+      job_execution_timeout_seconds: 300
+      job_retries: 3
+      keyfile: /path/to/bigquery/credentials/dev_file.json
+      location: EU
+      method: service-account
+      priority: interactive
+      project: <gcp-project-id>
+      threads: 4
+      type: bigquery
+    prod:
+      dataset: ny_taxi_dbt
+      job_execution_timeout_seconds: 300
+      job_retries: 3
+      keyfile: /path/to/bigquery/credentials/prod_file.json
+      location: EU
+      method: service-account
+      priority: interactive
+      project: <gcp-project-id>
+      threads: 4
+      type: bigquery
+  target: dev
+```
+(Option 2) Configure on dbt cloud
+You can also configure the same things on dbt cloud from UI.
+
+#### 4.2 deployment
+```
+dbt build --target (prod|prod) --var 'is_test_run: false'
+```
 
 

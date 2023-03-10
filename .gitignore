@@ -11,3 +11,5 @@ venv
 notebook
 
 __pycache__
+logs
+
