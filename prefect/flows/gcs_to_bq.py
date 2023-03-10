@@ -32,6 +32,8 @@ def update_bigquery_table():
     with BigQueryWarehouse.load("world-earthquake") as warehouse:
         operation = f'''
         CREATE OR REPLACE TABLE `{project_id}.{raw_dataset}.kaggle_data`
+        PARTITION BY DATE_TRUNC(time, YEAR)
+        CLUSTER BY type
         AS 
         SELECT * FROM `{project_id}.{raw_dataset}.ext_kaggle_data`
         '''
