@@ -2,14 +2,14 @@
 version: 2
 
 sources:
-    - name: staging
-      schema: world_earthquake_raw
-      description: "staging"
-      tables:
-        - name: kaggle_data
+  - name: staging
+    schema: world_earthquake_raw
+    description: "staging"
+    tables:
+      - name: kaggle_data
 models:
   - name: stg_kaggle_data
-    description: "view for the kaggle data in world_earthqzake_raw"
+    description: "view for the kaggle data in world_earthquake_raw"
     columns:
       - name: id
         description: "The primary key for this table"

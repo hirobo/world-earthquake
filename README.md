@@ -16,6 +16,9 @@ Data transformation: dbt cloud
 Other GCP Services: Artifact registory, Secret manager
 Python vertual environment: venv (we will use python 3.9)
 
+## Dashboard
+You can see the dashboard from here: https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
+
 ## Set up
 ### 0. Prepare virtual environment
 python 3.9 -m venv venv
@@ -86,6 +89,8 @@ python deploy.py
 Then, you can see the following two deployments on the Prefect Cloud UI page:
 1. world-earthquake: load data from Kaggle and upload to GCS/web_to_gcs	
 2. world-earthquake: update BigQUery table/gcs_to_bq
+![prefect_deployments.png](images/images/prefect_deployments.png)
+
 
 #### 3.7. Set PREFECT_API_URL and start agent
 Set PREFECT_API_URL if you are using prefect locally. (e.g. local development)
@@ -99,11 +104,15 @@ prefect agent start -p default-agent-pool
 ```
 From the Prefect Cloud UI, run the flow `world-earthquake: load data from Kaggle and upload to GCS/web_to_gcs` then  `world-earthquake: update BigQUery table/gcs_to_bq`.
 
+Then, you can see an external table `ext_kaggle_data` and a partitioned table `kaggle_data` under the dataset `world_earthquake_raw`.
+![world_earthquake_raw.png](images/world_earthquake_raw.png)
+
 ### 4. dbt
 Working directory is `dbt`.
 
 #### 4.1. configure dbt
-##### (Option 1) configure profile.yml on dbt cli
+
+##### (Option 1) use dbt cli and configure profile.yml
 If you will use dbt cli, create profile.yml under ~/.dbt and write like this:
 
 ```
@@ -133,10 +142,13 @@ world_earthquake:
       type: bigquery
   target: dev
 ```
-(Option 2) Configure on dbt cloud
-You can also configure the same things on dbt cloud from UI.
+##### (Option 2) Use dbt cloud
+If you will use dbt colud, create a new project and configure it.
+Please don't forget to set sub directory as `dbt`.
 
-#### 4.2. deployment
+#### 4.2. Deployment
 ```
 dbt build --target (dev|prod) --var 'is_test_run: false'
 ```
+This will run tests, create a BigQuery dataset `world_earthquake_dbt`, a view `stg_kaggle_data` and a table `fact_world_earthquake`. 
+![world_earthquake_dbt.png](images/world_earthquake_dbt.png)
