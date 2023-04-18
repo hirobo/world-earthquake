@@ -42,8 +42,8 @@ resource "google_storage_bucket" "data-lake-bucket" {
 # DWH
 # Ref: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset
 resource "google_bigquery_dataset" "dataset" {
-  dataset_id = "world_earthquake_raw"
-  project    = var.project
-  location   = var.region
+  dataset_id  = "world_earthquake_raw"
+  project     = var.project
+  location    = var.region
   description = "dataset for world_earthquake raw data"
 }

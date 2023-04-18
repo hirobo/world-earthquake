@@ -14,6 +14,18 @@ variable "region" {
   type        = string
 }
 
+variable "vm_region" {
+  description = "Region for VM"
+  default     = "europe-west3"
+  type        = string
+}
+
+variable "vm_zone" {
+  description = "Zone for VM"
+  default     = "europe-west3-a"
+  type        = string
+}
+
 variable "storage_class" {
   description = "Storage class type for your bucket. Check official docs for more info."
   default     = "STANDARD"
@@ -26,3 +38,4 @@ variable "bq_dataset_raw" {
 }
 
 variable "gcp_key_file" {}
+

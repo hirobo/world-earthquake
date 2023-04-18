@@ -1,30 +1,35 @@
 # World earthquake data pipeline
 
-Dataset: https://www.kaggle.com/datasets/garrickhague/world-earthquake-data-from-1906-2022
-
-Dashboard: coming soon!
-
 ## About this project
-coming soon!
+In this project, we have constructed a data pipeline and dashboard using the World Earthquake Dataset, which covers data from 1906 to 2022. The dataset contains around 300,000 records of earthquake occurrences, magnitudes, and depths, providing valuable information for those interested in seismology. 
 
-### Pipeline technologies:
-Infrastructure as code (IaC): Terraform
-Workflow orchestration: Prefect Cloud
-Data Lake: Google Cloud Storage
-Data Wareshouse: BigQuery
-Data transformation: dbt cloud
-Other GCP Services: Artifact registory, Secret manager
-Python vertual environment: venv (we will use python 3.9)
+The objective of this project is to organize and analyze earthquake data through the data pipeline, and visualize earthquake-prone regions and other trends by creating a dashboard. By doing so, we aim to identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
+
+## Daraset
+https://www.kaggle.com/datasets/garrickhague/world-earthquake-data-from-1906-2022
 
 ## Dashboard
 You can see the dashboard from here: https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
 
+
+## Technologies
+- Infrastructure as code (IaC): Terraform
+- Batch / Workflow orchestration: Prefect 2.0
+- Data Lake: Google Cloud Storage
+- Data Wareshouse: BigQuery
+- Data transformation: dbt
+- Dashboard: Google Data Studio
+- Other GCP Services: Compute Engine, Container registry, Secret manager
+- Python vertual environment: venv (we will use python 3.9)
+
 ## Set up
 ### 0. Prepare virtual environment
+We need python to deploy flows etc...
+```
 python 3.9 -m venv venv
-pip install -r requirements.txt
 source venv/bin/activate
-
+pip install -r requirements.txt
+```
 ### 1. Create a GCP service account and a key
 The service account should have the follwing roles:
 - BigQuery Admin
@@ -33,7 +38,7 @@ The service account should have the follwing roles:
 - Secret Manager Secret Accessor
 ### 2. Terraform
 Working directory is `terraform`.
-We will create a GCS bucket for data lake and a BigQuery dataset for saving raw data.
+We will create a GCS bucket for data lake and a BigQuery dataset for saving raw data, and a vurtual mashine for Prefect/dbt.
 #### 2.1. Create a bucket for tsfile
 We will save the tfstate file in a GCS bucket, so please create a bucket for that. (Recommend to use object versioning.)
 #### 2.2. Create configuration files
@@ -45,16 +50,16 @@ terraform plan -var-file=env.tfvars
 terraform apply -var-file=env.tfvars
 ```
 
-### 3. Prefect
-We will use Prefect Cloud.
+### 3. Prefect (deploy flows on Prefect Cloud 2.0)
+We will use Prefect Cloud 2.0 for prefect server.
 Working directory is `prefect`.
 
 #### 3.1. Create a GCP Secret for kaggle.json content
-Make GCP Srcrete Manamer (https://cloud.google.com/secret-manage) API avairable and create a secret for Kaggle API.
+Make GCP Srcrete Manager (https://cloud.google.com/secret-manage) API avairable and create a secret for Kaggle API.
 For examlpe, create a secret with name "kaggle-json" and save the content of the kaggle.json.
 
-#### 3.2. GCP Artifact registory
-Make GCP Artifact registory API enable, so that we can save our docker image there.
+#### 3.2. GCP Container registry
+Make GCP Container registry API enable, so that we can save our docker image there.
 
 #### 3.3. Configure environment variables 
 Please create `.env` file from this example file `.env.example` and edit it.
@@ -77,10 +82,10 @@ Create a docker block for flows:
 python blocks/make_docker_block.py 
 ```
 #### 3.6. deployment flows
-Build a docker image and and push it to GCP Artifact registory. (probably you need to `gcloud auth configure-docker`): 
+Build a docker image and and push it to GCP Container registry. (probably you need to `gcloud auth configure-docker`): 
 ```
-docker build -t $WORLD_EARTHQUAKE_DOCKER_IMAGE_NAME .
-docker push $WORLD_EARTHQUAKE_DOCKER_IMAGE_NAME
+docker build -t $WORLD_EARTHQUAKE_DOCKER_IMAGE .
+docker push $WORLD_EARTHQUAKE_DOCKER_IMAGE
 ```
 Run this deoloyment script:
 ```
@@ -89,28 +94,83 @@ python deploy.py
 Then, you can see the following two deployments on the Prefect Cloud UI page:
 1. world-earthquake: load data from Kaggle and upload to GCS/web_to_gcs	
 2. world-earthquake: update BigQUery table/gcs_to_bq
-![prefect_deployments.png](images/images/prefect_deployments.png)
+
+![prefect_deployments.png](images/prefect_deployments.png)
 
 
-#### 3.7. Set PREFECT_API_URL and start agent
-Set PREFECT_API_URL if you are using prefect locally. (e.g. local development)
+### 4. Prefect agent
+We will run prefect agent using docker.
+Working directory is `docker/prefect-agent`.
+
+#### 4.1. Configure environment variables 
+Please create `.env` file from this example file `.env.example` and edit it.
+Then, export the variables:
 ```
-prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+export $(grep -v '^#' .env | xargs)
 ```
-#### 3.8. Run prefect agent and the flows 
-Run an agent:
+#### 4.2. Build a docker image
+Build a docker image:
 ```
-prefect agent start -p default-agent-pool
+docker build -t $PREFECT_AGENT_DOCKER_IMAGE .
 ```
+#### 4.4. Start prefect agent using docker
+There are two options to run the prefect agent.
+1. Run locally (e.g. for developmemt)
+2. Run on a VM instance on the GCP Compute Engine
+
+##### Option 1: Run locally (e.g. for developmemt)
+Run a docker container locally:
+```
+docker run -d --name prefect-agent --restart always \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/key.json:ro \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json \
+  -e PREFECT_API_URL=$PREFECT_API_URL \
+  -e PREFECT_API_KEY=$PREFECT_API_KEY \
+  $PREFECT_AGENT_DOCKER_IMAGE
+```
+
+##### Option 2: Run on a VM instance on the GCP Compute Engine
+Push the docker image to Google Container Registry:
+```
+docker push $PREFECT_AGENT_DOCKER_IMAGE
+```
+Follwing this inctruction, create a VM instance running "Container-Optimized OS" on the GCP Compute Engine:
+https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance
+
+(I tried to do it using terraform, but I have no idea how to create and configure a VM instance running "Container-Optimized OS", so I did it manually.)
+
+Configuration as follws:
+- Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g gcr.io/<project_id>>/<domain>/prefect-agent
+- Environment variables:
+  - GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json
+  - PREFECT_API_URL
+  - PREFECT_API_KEY
+- Volume mounts:
+  - /var/run/docker.sock:/var/run/docker.sock
+  - /tmp/key.json:/tmp/key.json (read only)
+
+![prefect_agent_vm_config.png](images/prefect_agent_vm_config.png)
+
+And then, start the instance first, after that, send the google credentials key file to the VM (/tmp/key.json) like this:
+```
+gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS <user_name>@<vm_instance_name>:/tmp/key.json --zone=<zone_of_vm>
+```
+
+Now, prefect agent is ready to work for flows!
+
+
+#### 4.5. Run the flows on the Prefect Cloud
 From the Prefect Cloud UI, run the flow `world-earthquake: load data from Kaggle and upload to GCS/web_to_gcs` then  `world-earthquake: update BigQUery table/gcs_to_bq`.
 
 Then, you can see an external table `ext_kaggle_data` and a partitioned table `kaggle_data` under the dataset `world_earthquake_raw`.
+
 ![world_earthquake_raw.png](images/world_earthquake_raw.png)
 
-### 4. dbt
+### 5. dbt
 Working directory is `dbt`.
 
-#### 4.1. configure dbt
+#### 5.1. configure dbt
 
 ##### (Option 1) use dbt cli and configure profile.yml
 If you will use dbt cli, create profile.yml under ~/.dbt and write like this:
@@ -146,9 +206,10 @@ world_earthquake:
 If you will use dbt colud, create a new project and configure it.
 Please don't forget to set sub directory as `dbt`.
 
-#### 4.2. Deployment
+#### 5.2. Deployment
 ```
 dbt build --target (dev|prod) --var 'is_test_run: false'
 ```
-This will run tests, create a BigQuery dataset `world_earthquake_dbt`, a view `stg_kaggle_data` and a table `fact_world_earthquake`. 
+This will run tests, create a BigQuery dataset `world_earthquake_dbt`, a view `stg_kaggle_data` and a table `fact_world_earthquake`.
+
 ![world_earthquake_dbt.png](images/world_earthquake_dbt.png)
