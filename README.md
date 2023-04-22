@@ -18,7 +18,7 @@ You can see the dashboard from here: https://lookerstudio.google.com/reporting/2
 - Data Lake: Google Cloud Storage
 - Data Wareshouse: BigQuery
 - Data transformation: dbt
-- Dashboard: Google Data Studio
+- Dashboard: Google Looker Studio
 - Other GCP Services: Compute Engine, Container registry, Secret manager
 - Python vertual environment: venv (we will use python 3.9)
 
