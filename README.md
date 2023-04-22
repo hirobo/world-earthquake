@@ -22,6 +22,9 @@ You can see the dashboard from here: https://lookerstudio.google.com/reporting/2
 - Other GCP Services: Compute Engine, Container registry, Secret manager
 - Python vertual environment: venv (we will use python 3.9)
 
+![pipeline.svg](images/pipeline.svg)
+
+
 ## Set up
 ### 0. Prepare virtual environment
 We need python to deploy flows etc...
