@@ -1,44 +1,47 @@
 # World earthquake data pipeline
 
 ## About this project
-In this project, we have constructed a data pipeline and dashboard using the World Earthquake Dataset, which covers data from 1906 to 2022. The dataset contains around 300,000 records of earthquake occurrences, magnitudes, and depths, providing valuable information for those interested in seismology. 
+In this project, we have built a data pipeline and a dashboard using the World Earthquake Dataset, which covers data from 1906 to 2022. The dataset contains around 300,000 records of earthquake occurrences, magnitudes, and depths, providing valuable information for those interested in seismology.
 
-The objective of this project is to organize and analyze earthquake data through the data pipeline, and visualize earthquake-prone regions and other trends by creating a dashboard. By doing so, we aim to identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
+The objective of this project is to organize and analyze earthquake data through the data pipeline using  an orchestration tool (Prefect) and visualize earthquake-prone regions and other trends by creating a dashboard. By doing so, we aim to identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
 
 ## Dataset
 https://www.kaggle.com/datasets/garrickhague/world-earthquake-data-from-1906-2022
 
 ## Dashboard
-You can see the dashboard from here: https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
+You can view the dashboard here:
+
+https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
 
 
 ## Technologies
 - Infrastructure as code (IaC): Terraform
 - Batch / Workflow orchestration: Prefect 2.0
 - Data Lake: Google Cloud Storage
-- Data Wareshouse: BigQuery
+- Data Warehouse: BigQuery
 - Data transformation: dbt
 - Dashboard: Google Looker Studio
 - Other GCP Services: Compute Engine, Container registry, Secret manager
-- Python vertual environment: venv (we will use python3.9)
+- Python virtual environment: venv (we use python3.9)
 
 ![pipeline.svg](images/pipeline.svg)
 
 
 ## Set up
 ### 1. Create a GCP service account and a key
-The service account should have the follwing roles:
+The service account should have the following roles:
 - BigQuery Admin
 - Storage Admin
 - Storage Object Admin
 - Secret Manager Secret Accessor
+
 ### 2. Terraform
 Working directory is `terraform`.
-We will create a GCS bucket for data lake and a BigQuery dataset for saving raw data, and a vurtual mashine for Prefect/dbt.
-#### 2.1 Create a bucket for tsfile
-We will save the tfstate file in a GCS bucket, so please create a bucket for that. (Recommend to use object versioning.)
+We will create a GCS bucket for data lake and a BigQuery dataset for saving raw data, and a virtual machine for Prefect/dbt.
+#### 2.1 Create a bucket for the tsfile
+We will save the `tfstate` file in a GCS bucket, so please create a bucket for that. (We recommend using object versioning.)
 #### 2.2 Create configuration files
-Please create `env.tfvars` file and `backend.conf`file from these example files `env.tfvars.example` and `backend.conf.example` and edit them.
+Please create `env.tfvars` and `backend.conf` files from the example files `env.tfvars.example` and `backend.conf.example`, and edit them.
 #### 2.3 terraform init/plan/apply
 ```
 terraform init -backend-config=backend.conf -var-file=env.tfvars
@@ -47,11 +50,11 @@ terraform apply -var-file=env.tfvars
 ```
 
 ### 3. Prefect (deploy flows on Prefect Cloud 2.0)
-We will use Prefect Cloud 2.0 for prefect server.
+We will use Prefect Cloud 2.0 for the Prefect server.
 Working directory is `prefect`.
 
 #### 3.1 Prepare virtual environment
-We need python to deploy flows etc...
+We need Python to deploy flows.
 ```
 python3.9 -m venv venv
 source venv/bin/activate
@@ -59,25 +62,25 @@ pip install -r requirements.txt
 ```
 
 #### 3.2 Create a GCP Secret for kaggle.json content
-Make GCP Srcrete Manager (https://cloud.google.com/secret-manage) API avairable and create a secret for Kaggle API.
-For examlpe, create a secret with name "kaggle-json" and save the content of the kaggle.json.
+Make GCP Secret Manager (https://cloud.google.com/secret-manage) API available and create a secret for Kaggle API.
+For example, create a secret with name "kaggle-json" and save the content of the `kaggle.json`.
 
 #### 3.3 GCP Container registry
-Make GCP Container registry API enable, so that we can save our docker image there.
+Enable GCP Container Registry API so that we can save our Docker image there.
 
 #### 3.4 Configure environment variables 
-Please create `.env` file from this example file `.env.example` and edit it.
+Please create a `.env` file from the example file `.env.example` and edit it.
 Then, export the variables:
 ```
 export $(grep -v '^#' .env | xargs)
 ```
 #### 3.5 Start prefect server
-Login to the Prefect cloud. (Assume that you already have a workspace.) 
+Login to the Prefect cloud. (Assuming you already have a workspace.)
 ```
 prefect cloud login
 ```
 #### 3.6 Create Prefect blocks
-Create GCP credentials, GCP bucket, BigQuery Warehouse, GcpSecret blocks:
+Create GCP credentials, GCP bucket, BigQuery Warehouse, and GcpSecret blocks:
 ```
 python blocks/make_gcp_blocks.py 
 ```
@@ -86,12 +89,12 @@ Create a docker block for flows:
 python blocks/make_docker_block.py 
 ```
 #### 3.7 deployment flows
-Build a docker image and and push it to GCP Container registry. (probably you need to `gcloud auth configure-docker`): 
+Build a docker image and push it to GCP Container registry. (You may need to `gcloud auth configure-docker`): 
 ```
 docker build -t $WORLD_EARTHQUAKE_DOCKER_IMAGE .
 docker push $WORLD_EARTHQUAKE_DOCKER_IMAGE
 ```
-Run this deoloyment script:
+Run this deployment script:
 ```
 python deploy.py
 ```
@@ -103,7 +106,7 @@ Then, you can see the following two deployments on the Prefect Cloud UI page:
 
 
 ### 4. Prefect agent
-We will run prefect agent using docker.
+We will run the Prefect agent using docker.
 Working directory is `docker/prefect-agent`.
 
 #### 4.1 Configure environment variables 
@@ -139,12 +142,10 @@ Push the docker image to Google Container Registry:
 ```
 docker push $PREFECT_AGENT_DOCKER_IMAGE
 ```
-Follwing this inctruction, create a VM instance running "Container-Optimized OS" on the GCP Compute Engine:
+Following this instruction, create a VM instance running "Container-Optimized OS" on the GCP Compute Engine:
 https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance
 
-(I tried to do it using terraform, but I have no idea how to create and configure a VM instance running "Container-Optimized OS", so I did it manually.)
-
-Configuration as follws:
+Configuration as follows:
 - Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g gcr.io/<project_id>>/<domain>/prefect-agent
 - Environment variables:
   - GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json
@@ -161,7 +162,7 @@ And then, start the instance first, after that, send the google credentials key 
 gcloud compute scp $GOOGLE_APPLICATION_CREDENTIALS <user_name>@<vm_instance_name>:/tmp/key.json --zone=<zone_of_vm>
 ```
 
-Now, prefect agent is ready to work for flows!
+Now, the prefect agent is ready to work for flows!
 
 
 #### 4.4 Run the flows on the Prefect Cloud
@@ -206,9 +207,9 @@ world_earthquake:
       type: bigquery
   target: dev
 ```
-##### (Option 2) Use dbt cloud
-If you will use dbt colud, create a new project and configure it.
-Please don't forget to set sub directory as `dbt`.
+##### (Option 2) Use dbt Cloud
+If you will use dbt Cloud, create a new project and configure it.
+Please don't forget to set the subdirectory as `dbt`.
 
 #### 5.2 Deployment
 ```
@@ -217,3 +218,5 @@ dbt build --target (dev|prod) --var 'is_test_run: false'
 This will run tests, create a BigQuery dataset `world_earthquake_dbt`, a view `stg_kaggle_data` and a table `fact_world_earthquake`.
 
 ![world_earthquake_dbt.png](images/world_earthquake_dbt.png)
+
+With these steps, your data pipeline is now complete, and you can use the dashboard to visualize earthquake-prone regions and other trends. This will help identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
