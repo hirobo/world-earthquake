@@ -1,9 +1,9 @@
 # World earthquake data pipeline
 
 ## About this project
-In this project, we have built a data pipeline and a dashboard using the World Earthquake Dataset, which covers data from 1906 to 2022. The dataset contains around 300,000 records of earthquake occurrences, magnitudes, and depths, providing valuable information for those interested in seismology.
+This project addresses the lack of accessible earthquake data analysis tools by building a data pipeline and dashboard using the World Earthquake Dataset. The dashboard provides an interactive and visually appealing interface for users to filter and analyze earthquake data by time, location, magnitude, and other factors. 
 
-The objective of this project is to organize and analyze earthquake data through the data pipeline using  an orchestration tool (Prefect) and visualize earthquake-prone regions and other trends by creating a dashboard. By doing so, we aim to identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
+The data pipeline uses Prefect 2.0 and dbt for scalability and future expandability as new data becomes available. Additionally, GCP's cloud environment is utilized for increased reliability and maintenance of the project.
 
 ## Dataset
 https://www.kaggle.com/datasets/garrickhague/world-earthquake-data-from-1906-2022
@@ -19,10 +19,10 @@ https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
 - Batch / Workflow orchestration: Prefect 2.0
 - Data Lake: Google Cloud Storage
 - Data Warehouse: BigQuery
-- Data transformation: dbt
+- Data transformation: dbt (cloud)
 - Dashboard: Google Looker Studio
-- Other GCP Services: Compute Engine, Artifact registry, Secret manager
-- Python virtual environment: venv (we use python3.9)
+- Other GCP Services: Compute Engine, Artifact Registry, Secret Manager
+- Python 3.9
 
 ![pipeline.svg](images/pipeline.svg)
 
@@ -34,13 +34,13 @@ The service account should have the following roles:
 - Storage Admin
 - Storage Object Admin
 - Secret Manager Secret Accessor
-- Artifact Registry Writer
+- Artifact Registry Administrator
 
 ### 2. Terraform
 Working directory is `terraform`.
 We will create the following GCP resources:
 - a GCS bucket for data lake 
-- a BigQuery dataset for saving raw data
+- a BigQuery dataset for saving the raw data
 - an Artifact Registry repository to save Docker images for Prefect flows and Prefect agent
 
 #### 2.1 Create a bucket for the tsfile
@@ -224,4 +224,4 @@ This will run tests, create a BigQuery dataset `world_earthquake_dbt`, a view `s
 
 ![world_earthquake_dbt.png](images/world_earthquake_dbt.png)
 
-With these steps, your data pipeline is now complete, and you can use the dashboard to visualize earthquake-prone regions and other trends. This will help identify areas with high earthquake risk and provide information for the consideration of prevention measures and strategies.
+With these steps, your data pipeline is now complete, and you can use the BigQuery table `fact_world_earthquake` to create a dashboard to visualize earthquake-prone regions and other trends.
