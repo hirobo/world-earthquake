@@ -3,7 +3,7 @@ version: 2
 models:
   - name: fact_world_earthquake
     description: >
-      List of workd earthquake data for data-mart.
+      List of world earthquake data for data-mart.
     columns:
       - name: time
         description: "timestamp"
