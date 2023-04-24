@@ -47,3 +47,11 @@ resource "google_bigquery_dataset" "dataset" {
   location    = var.region
   description = "dataset for world_earthquake raw data"
 }
+
+# Artifact Registry
+resource "google_artifact_registry_repository" "world_earthquake" {
+  provider      = google
+  location      = var.location
+  repository_id = "world-earthquake"
+  format        = "DOCKER"
+}

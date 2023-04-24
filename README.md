@@ -21,7 +21,7 @@ https://lookerstudio.google.com/reporting/2a7b7ecf-827c-498c-a486-af2cc398711e.
 - Data Warehouse: BigQuery
 - Data transformation: dbt
 - Dashboard: Google Looker Studio
-- Other GCP Services: Compute Engine, Container registry, Secret manager
+- Other GCP Services: Compute Engine, Artifact registry, Secret manager
 - Python virtual environment: venv (we use python3.9)
 
 ![pipeline.svg](images/pipeline.svg)
@@ -34,10 +34,15 @@ The service account should have the following roles:
 - Storage Admin
 - Storage Object Admin
 - Secret Manager Secret Accessor
+- Artifact Registry Writer
 
 ### 2. Terraform
 Working directory is `terraform`.
-We will create a GCS bucket for data lake and a BigQuery dataset for saving raw data, and a virtual machine for Prefect/dbt.
+We will create the following GCP resources:
+- a GCS bucket for data lake 
+- a BigQuery dataset for saving raw data
+- an Artifact Registry repository to save Docker images for Prefect flows and Prefect agent
+
 #### 2.1 Create a bucket for the tsfile
 We will save the `tfstate` file in a GCS bucket, so please create a bucket for that. (We recommend using object versioning.)
 #### 2.2 Create configuration files
@@ -65,8 +70,8 @@ pip install -r requirements.txt
 Make GCP Secret Manager (https://cloud.google.com/secret-manage) API available and create a secret for Kaggle API.
 For example, create a secret with name "kaggle-json" and save the content of the `kaggle.json`.
 
-#### 3.3 GCP Container registry
-Enable GCP Container Registry API so that we can save our Docker image there.
+#### 3.3 GCP Artifact registry
+Enable GCP Artifact Registry API so that we can save our Docker image there.
 
 #### 3.4 Configure environment variables 
 Please create a `.env` file from the example file `.env.example` and edit it.
@@ -89,10 +94,10 @@ Create a docker block for flows:
 python blocks/make_docker_block.py 
 ```
 #### 3.7 deployment flows
-Build a docker image and push it to GCP Container registry. (You may need to `gcloud auth configure-docker`): 
+Build a docker image and push it to GCP Artifact registry. (You may need to `gcloud auth configure-docker europe-west3-docker.pkg.dev --quiet` or something like that.): 
 ```
-docker build -t $WORLD_EARTHQUAKE_DOCKER_IMAGE .
-docker push $WORLD_EARTHQUAKE_DOCKER_IMAGE
+docker build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE .
+docker push $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE
 ```
 Run this deployment script:
 ```
@@ -138,7 +143,7 @@ docker run -d --name prefect-agent --restart always \
 ```
 
 ##### Option 2: Run on a VM instance on the GCP Compute Engine
-Push the docker image to Google Container Registry:
+Push the docker image to the Artifact Registry:
 ```
 docker push $PREFECT_AGENT_DOCKER_IMAGE
 ```
@@ -146,7 +151,7 @@ Following this instruction, create a VM instance running "Container-Optimized OS
 https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance
 
 Configuration as follows:
-- Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g gcr.io/<project_id>>/<domain>/prefect-agent
+- Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g europe-west3-docker.pkg.dev/<project_id>/world-earthquake/prefect-agent
 - Environment variables:
   - GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json
   - PREFECT_API_URL

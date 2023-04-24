@@ -14,15 +14,9 @@ variable "region" {
   type        = string
 }
 
-variable "vm_region" {
-  description = "Region for VM"
+variable "location" {
+  description = "Location"
   default     = "europe-west3"
-  type        = string
-}
-
-variable "vm_zone" {
-  description = "Zone for VM"
-  default     = "europe-west3-a"
   type        = string
 }
 
