@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: earthquake_raw
+    schema: earthquake_raw
+    description: "raw data"
+    tables:
+      - name: usgs_data
+models:
+  - name: stg_usgs
+    description: "staging data from earthquake_raw.usgs_data"
+    #+dataset: stg
+    columns:
+      - name: id
+        tests:
+          - not_null
+      - name: valid_from
+        tests:
+          - not_null
+      - name: hash_value
+        tests:
+          - not_null

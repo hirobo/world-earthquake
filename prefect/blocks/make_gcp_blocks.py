@@ -1,10 +1,14 @@
 import os
-from prefect_gcp import GcpCredentials, GcpSecret
+from prefect_gcp import GcpCredentials
 from prefect_gcp.cloud_storage import GcsBucket
 from prefect_gcp.bigquery import BigQueryWarehouse
 
-BLOCK_NAME = "world-earthquake"
+
+BASE_NAME = "world-earthquake-pipeline"
+ENV = os.environ.get("ENV")
 DL_BUCKET = os.environ.get("WORLD_EARTHQUAKE_DL_BUCKET")
+BLOCK_NAME = f"{BASE_NAME}-{ENV}"
+
 
 with open(os.environ["GOOGLE_APPLICATION_CREDENTIALS"], 'r') as file:
     service_account_data = file.read()
@@ -17,7 +21,7 @@ credentials_block.save(BLOCK_NAME, overwrite=True)
 
 bucket_block = GcsBucket(
     gcp_credentials=GcpCredentials.load(BLOCK_NAME),
-    bucket=f"{DL_BUCKET}",
+    bucket=DL_BUCKET,
 )
 
 bucket_block.save(BLOCK_NAME, overwrite=True)
@@ -28,10 +32,3 @@ bigquery_block = BigQueryWarehouse(
 )
 
 bigquery_block.save(BLOCK_NAME, overwrite=True)
-
-secret_block = GcpSecret(
-    gcp_credentials=GcpCredentials.load(BLOCK_NAME),
-    secret_name = "kaggle-json"
-)
-
-secret_block.save(f"kaggle-json", overwrite=True)

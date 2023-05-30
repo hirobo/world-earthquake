@@ -1,0 +1,190 @@
+[
+  {
+    "mode": "NULLABLE",
+    "name": "id",
+    "type": "STRING"
+  },
+  {
+    "fields": [
+      {
+        "mode": "REPEATED",
+        "name": "coordinates",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "type",
+        "type": "STRING"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "geometry",
+    "type": "RECORD"
+  },
+  {
+    "fields": [
+      {
+        "mode": "NULLABLE",
+        "name": "title",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "magType",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "time",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "nst",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "dmin",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "types",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "sources",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "code",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "net",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "gap",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "rms",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "mag",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "sig",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "type",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "updated",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "place",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "mmi",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "felt",
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "cdi",
+        "type": "FLOAT"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "detail",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "status",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "alert",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tz",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "url",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "ids",
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE",
+        "name": "tsunami",
+        "type": "INTEGER"
+      }
+    ],
+    "mode": "NULLABLE",
+    "name": "properties",
+    "type": "RECORD"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "type",
+    "type": "STRING"
+  },
+  {
+    "description": "Indicates whether the record is currently valid.",
+    "mode": "REQUIRED",
+    "name": "is_valid",
+    "type": "BOOLEAN"
+  },
+  {
+    "description": "Timestamp when the record became valid.",
+    "mode": "REQUIRED",
+    "name": "valid_from",
+    "type": "TIMESTAMP"
+  },
+  {
+    "description": "Timestamp when the record became invalid. NULL if the record is currently valid.",
+    "mode": "NULLABLE",
+    "name": "valid_to",
+    "type": "TIMESTAMP"
+  },
+  {
+    "description": "Hash value of the record calculated using FARM_FINGERPRINT.",
+    "mode": "REQUIRED",
+    "name": "hash_value",
+    "type": "INTEGER"
+  }
+]

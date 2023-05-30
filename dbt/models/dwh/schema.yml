@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: earthquake_stg
+    #schema: # we don't define schema here
+    description: "staging data"
+    tables:
+      - name: stg_usgs
+models:
+  - name: dwh_usgs
+    description: "Intermediate data from earthquake_stg.stg_usgs. This table only have up to date data."
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null

@@ -16,7 +16,7 @@ provider "google" {
 
 # Data Lake Bucket
 resource "google_storage_bucket" "data-lake-bucket" {
-  name     = "world_earthquake_dl_${var.project}" # Concatenating DL bucket & Project name for unique naming
+  name     = "world_earthquake_pipeline_dl_${var.project}" # Concatenating DL bucket & Project name for unique naming
   location = var.region
 
   # Optional, but recommended settings:
@@ -27,7 +27,7 @@ resource "google_storage_bucket" "data-lake-bucket" {
     enabled = true
   }
 
-  lifecycle_rule {
+/*   lifecycle_rule {
     action {
       type = "Delete"
     }
@@ -35,23 +35,23 @@ resource "google_storage_bucket" "data-lake-bucket" {
       age = 90 // days
     }
   }
-
+ */
   force_destroy = true
 }
 
 # DWH
 # Ref: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset
-resource "google_bigquery_dataset" "dataset" {
-  dataset_id  = "world_earthquake_raw"
+resource "google_bigquery_dataset" "earthquake_raw_dataset" {
+  dataset_id  = "earthquake_raw"
   project     = var.project
   location    = var.region
-  description = "dataset for world_earthquake raw data"
+  description = "dataset for raw data"
 }
 
 # Artifact Registry
-resource "google_artifact_registry_repository" "world_earthquake" {
+resource "google_artifact_registry_repository" "artifact_registry_repository" {
   provider      = google
   location      = var.location
-  repository_id = "world-earthquake"
+  repository_id = "world-earthquake-pipeline"
   format        = "DOCKER"
 }

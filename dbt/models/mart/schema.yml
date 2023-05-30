@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: earthquake_dwh
+    #schema: # we don't define schema here
+    description: "data warehouse data"
+    tables:
+      - name: dwh_usgs
+models:
+  - name: mart_earthquake
+    description: "earthquake data for data mart"
+    columns:
+      - name: id
+        description: "The primary key for this table"
+        tests:
+          - unique
+          - not_null

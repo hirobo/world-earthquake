@@ -1,11 +1,16 @@
 data
 .credentials
 env.tfvars
-backend.conf
+terraform/env.*.tfvars
+terraform/backend.conf
 .terraform
 .terraform.lock.hcl
+terraform.tfstate
 
 .env
+.env.dev
+.env.prod
+.env.sandbox
 
 venv
 notebook
@@ -13,3 +18,4 @@ notebook
 __pycache__
 logs
 
+.vscode

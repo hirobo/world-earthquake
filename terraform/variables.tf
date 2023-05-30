@@ -2,12 +2,6 @@ variable "project" {
   description = "Your GCP Project ID"
 }
 
-variable "data_lake_bucket" {
-  description = "This label will be used as a part of data lake bucket name"
-  default     = "world_earthquake_dl"
-  type        = string
-}
-
 variable "region" {
   description = "Region for GCP resources. Choose as per your location: https://cloud.google.com/about/locations"
   default     = "EU"
