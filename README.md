@@ -12,7 +12,7 @@ https://earthquake.usgs.gov/fdsnws/event/1/
 ## Dashboard
 You can view the dashboard here:
 
-[not yet published]
+[Coming soon!]
 
 
 ## Technologies
@@ -171,6 +171,7 @@ docker run -d --name prefect-agent --restart always \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/key.json:ro \
   -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json \
+  -e ARTIFACT_REGISTRY_PROJECT_ID=$ARTIFACT_REGISTRY_PROJECT_ID \
   $PREFECT_AGENT_DOCKER_IMAGE
 ```
 
@@ -184,6 +185,8 @@ https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-ins
 
 Configuration as follows:
 - Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g europe-west3-docker.pkg.dev/<project_id>/world-earthquake-pipeline/prefect-agent
+- Environment variables:
+  - ARTIFACT_REGISTRY_PROJECT_ID:$ARTIFACT_REGISTRY_PROJECT_ID
 - Volume mounts:
   - /var/run/docker.sock:/var/run/docker.sock
 
