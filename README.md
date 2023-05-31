@@ -6,6 +6,10 @@ The dashboard provides an interactive and visually appealing interface for users
 
 The data pipeline uses Prefect 2.0 and dbt for scalability and future expandability as new data becomes available. Additionally, GCP's cloud environment is utilized for increased reliability and maintenance of the project.
 
+This project was originally created as a capstone project for the Data Engineering Zoomcamp by DataTalks.Club (https://github.com/DataTalksClub/data-engineering-zoomcamp). The initial version utilized a stable dataset found on Kaggle (https://www.kaggle.com/datasets/garrickhague/world-earthquake-data-from-1906-2022) that contained earthquake data up until 2022. This early version of the project can be found at the branch `use-kaggle-data-ver`: https://github.com/hirobo/world-earthquake/tree/use-kaggle-data-ver.
+
+Since then, the project has been modified to incorporate data from the United States Geological Survey (USGS).
+
 ## Dataset
 https://earthquake.usgs.gov/fdsnws/event/1/
 
