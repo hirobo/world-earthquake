@@ -68,7 +68,6 @@ FROM (
 {% if is_incremental() %}
   WHERE updated > (select max(updated) from {{ this }})
 {% endif %}
--- dbt build --select <model.sql> --var 'is_test_run: false'
 {% if var('is_test_run', default=true) %}
 
   limit 100
