@@ -24,7 +24,7 @@ You can view the dashboard here:
 - Batch / Workflow orchestration: Prefect 2.0
 - Data Lake: Google Cloud Storage
 - Data Warehouse: BigQuery
-- Data transformation: dbt (cloud)
+- Data transformation: dbt (prefect-dbt)
 - Dashboard: Google Looker Studio
 - Other GCP Services: Compute Engine, Artifact Registry
 - Python 3.9
@@ -85,9 +85,18 @@ Do the same things for `prod`.
 
 ### 3. Prefect (deploy flows on Prefect Cloud 2.0)
 We will use Prefect Cloud 2.0 for the Prefect server.
-Working directory is `prefect`.
+
+#### 3.0 Configure environment variables
+Working directory is the root directory (not `prefect`).
+
+Please create a `.env.(dev|prod)` file from the example file `.env.example` and edit it.
+Then, export the variables (e.g. for dev):
+```
+export $(grep -v '^#' .env.dev | xargs)
+```
 
 #### 3.1 Prepare virtual environment
+Working directory is `prefect`.
 We need Python to deploy flows.
 ```
 python3.9 -m venv venv
@@ -98,12 +107,6 @@ pip install -r requirements.txt
 #### 3.2 GCP Artifact registry
 Enable GCP Artifact Registry API so that we can save our Docker image there.
 
-#### 3.3 Configure environment variables 
-Please create a `.env.(dev|prod)` file from the example file `.env.example` and edit it.
-Then, export the variables (e.g. for dev):
-```
-export $(grep -v '^#' .env.dev | xargs)
-```
 #### 3.4 Start prefect server
 Login to the Prefect cloud. (Assuming you already have a workspace.)
 ```
@@ -114,30 +117,50 @@ Create GCP credentials, GCP bucket, BigQuery Warehouse, and GcpSecret blocks:
 ```
 python blocks/make_gcp_blocks.py 
 ```
+Create blocks for dbt:
+```
+python blocks/make_docker_block.py 
+```
 Create a docker block for flows:
 ```
 python blocks/make_docker_block.py 
 ```
-#### 3.6 deployment flows
+
+#### 3.6 Build a docker image and push to GCP Artifact registry for flows
+Go to the root directory (not `docker/prefect-flows`).
+Make sure that the environment variable $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE is loaded.
+
 Build a docker image and push it to GCP Artifact registry. (You may need to `gcloud auth configure-docker europe-west3-docker.pkg.dev --quiet` or something like that.): 
 ```
-docker buildx build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE .
+docker buildx build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE -f docker/prefect-flows/Dockerfile .
 docker push $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE
 ```
-Run this deployment script:
+
+#### 3.7 Deployment flows
+Make sure that the environment variable are loaded, then run this deployment script:
 ```
-python deploy.py
+python prefect/deploy.py
 ```
 Then, you can see the following three deployments on the Prefect Cloud UI page:
 1. world-earthquake-pipeline: web_to_gcs_to_bq_all/deploy
 2. world-earthquake-pipeline: web_to_gcs_to_bq_daily/deploy	
 3. world-earthquake-pipeline: web_to_gcs_to_bq_with_params/deploy
+3. world-earthquake-pipeline: trigger_dbt/deploy
 
 The flow `web_to_gcs_to_bq_all` will be run only at the first time to load all data from the year 1958 to yesterday.
 
 The flow `web_to_gcs_to_bq_daily` is scheduled on 5:00 o'clock (UTC) every day to update yesterday's data.
 
 The flow `web_to_gcs_to_bq_with_params` will be used if you want to update data which was not updated because of some errors.
+
+The flow `trigger_dbt` will run `dbt build --target (dev|prod) --vars 'is_test_run: false'` to update BigQuery tables under the following datasets:
+
+* earthquake_(dev|prod)_stg
+  * stg_usgs
+* earthquake_(dev|prod)_dwh
+  * dwh_usgs
+* earthquake_(dev|prod)_mart
+  * mart_earthquakes
 
 
 ### 4. Prefect agent
@@ -201,58 +224,8 @@ And then, start the instance. The prefect agent is ready to work for flows!
 From the Prefect Cloud UI, run the flow `world-earthquake-pipeline: web_to_gcs_to_bq_all`.
 Then, you can see a partitioned table `usgs_data` under the dataset `earthquake_raw`.
 
-The flow `world-earthquake-pipeline: web_to_gcs_to_bq_daily` is scheduled on every 5 o'clock (UTC) every day to update date yesterday.
+The flow `world-earthquake-pipeline: web_to_gcs_to_bq_daily` is scheduled on every 05:00 (UTC) every day to update data in `earthquake_raw` yesterday.
 
-### 5. dbt
-Working directory is `dbt`.
+The flow `world-earthquake-pipeline: trigger_dbt` is scheduled on every 05:05 (UTC) every day to update tables under the datasets `earthquake_(dev|prod)_(stg|dwh|mart)` incrementally.
 
-#### 5.1 configure dbt
-
-##### (Option 1) use dbt cli and configure profile.yml
-If you will use dbt cli, create profile.yml under ~/.dbt and write like this:
-
-```
-world_earthquake:
-  outputs:
-    dev:
-      dataset: earthquake_dev
-      job_execution_timeout_seconds: 300
-      job_retries: 3
-      keyfile: /path/to/bigquery/credentials/dev_file.json
-      location: EU
-      method: service-account
-      priority: interactive
-      project: <gcp-project-id>
-      threads: 4
-      type: bigquery
-    prod:
-      dataset: earthquake_prod
-      job_execution_timeout_seconds: 300
-      job_retries: 3
-      keyfile: /path/to/bigquery/credentials/prod_file.json
-      location: EU
-      method: service-account
-      priority: interactive
-      project: <gcp-project-id>
-      threads: 4
-      type: bigquery
-  target: dev
-```
-##### (Option 2) Use dbt Cloud
-If you will use dbt Cloud, create a new project and configure it.
-Please don't forget to set the subdirectory as `dbt`.
-
-#### 5.2 Deployment
-```
-dbt build --target (dev|prod) --var 'is_test_run: false'
-```
-This will run tests, create BigQuery datasets and tables like this:
-
-* earthquake_(dev|prod)_stg
-  * stg_usgs
-* earthquake_(dev|prod)_dwh
-  * dwh_usgs
-* earthquake_(dev|prod)_mart
-  * mart_earthquakes
-
-With these steps, your data pipeline is now complete, and you can use the BigQuery table `mart_earthquakes` to create a dashboard to visualize earthquake-prone regions and other trends.
+With these steps, your data pipeline is now complete, and you can use the BigQuery table `earthquake_(dev|prod)_mart.mart_earthquake` to create a dashboard to visualize earthquake-prone regions and other trends.

@@ -1,6 +1,9 @@
 prefect-gcp==0.3.0
 prefect_gcp[cloud_storage]
 prefect_gcp[secret_manager]
+prefect-dbt==0.3.1
+prefect-dbt[cli]
+prefect-dbt[bigquery]
 pandas==1.5.3
 pandas-gbq==0.19.1
 gcsfs==2023.5.0

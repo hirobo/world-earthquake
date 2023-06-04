@@ -1,6 +1,10 @@
 __pycache__
 *.pyc
 *.log
+data
 .git
 .prefectignore
 venv
+logs
+target
+dbt_packages

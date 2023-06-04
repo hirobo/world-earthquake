@@ -51,7 +51,6 @@ FROM
 {% if is_incremental() %}
   WHERE TIMESTAMP_MILLIS(properties_updated) > (select max(properties_updated) from {{ this }})
 {% endif %}
--- dbt build --select <model.sql> --var 'is_test_run: false'
 {% if var('is_test_run', default=true) %}
 
   limit 100

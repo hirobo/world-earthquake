@@ -7,6 +7,9 @@ terraform/backend.conf
 .terraform.lock.hcl
 terraform.tfstate
 
+dbt/profiles.yml
+dbt/.user.yml
+
 .env
 .env.dev
 .env.prod
@@ -15,7 +18,9 @@ terraform.tfstate
 venv
 notebook
 
-__pycache__
 logs
 
+target
+
+__pycache__
 .vscode
