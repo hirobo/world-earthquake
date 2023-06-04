@@ -7,7 +7,7 @@ PROJECT_ID = os.environ.get("WORLD_EARTHQUAKE_PROJECT_ID")
 ENV = os.environ.get("ENV")
 BLOCK_NAME = f"{BASE_NAME}-{ENV}"
 DBT_DIR = "../dbt"
-DBT_PROFILES_DIR = "../dbt" # we don't use ~/.dbt
+DBT_PROFILES_DIR = "../dbt"  # we don't use ~/.dbt
 
 
 @flow(name="world-earthquake-pipeline: trigger_dbt")
@@ -17,7 +17,7 @@ def trigger_dbt() -> str:
         commands=[command],
         project_dir=DBT_DIR,
         profiles_dir=DBT_PROFILES_DIR,
-        dbt_cli_profile = DbtCliProfile.load(BLOCK_NAME),
+        dbt_cli_profile=DbtCliProfile.load(BLOCK_NAME),
         overwrite_profiles=True
     ).run()
 

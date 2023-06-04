@@ -1,6 +1,6 @@
 import os
 from prefect_gcp.credentials import GcpCredentials
-from prefect_dbt.cli import BigQueryTargetConfigs, DbtCliProfile, DbtCoreOperation
+from prefect_dbt.cli import BigQueryTargetConfigs, DbtCliProfile
 
 
 BASE_NAME = "world-earthquake-pipeline"
@@ -8,7 +8,7 @@ PROJECT_ID = os.environ.get("WORLD_EARTHQUAKE_PROJECT_ID")
 ENV = os.environ.get("ENV")
 BLOCK_NAME = f"{BASE_NAME}-{ENV}"
 SCHEMA_NAME = f"earthquake_{ENV}"
-DBT_PROFILE_NAME="world_earthquake_pipeline"
+DBT_PROFILE_NAME = "world_earthquake_pipeline"
 
 credentials = GcpCredentials.load(BLOCK_NAME)
 target_configs = BigQueryTargetConfigs(

@@ -15,5 +15,6 @@ def web_to_gcs_to_bq_daily() -> None:
                      replace=False,
                      split_time=True)
 
+
 if __name__ == "__main__":
     web_to_gcs_to_bq_daily()
