@@ -126,20 +126,10 @@ Create a docker block for flows:
 python blocks/make_docker_block.py 
 ```
 
-#### 3.6 Build a docker image and push to GCP Artifact registry for flows
-Go to the root directory (not `docker/prefect-flows`).
-Make sure that the environment variable $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE is loaded.
-
-Build a docker image and push it to GCP Artifact registry. (You may need to `gcloud auth configure-docker europe-west3-docker.pkg.dev --quiet` or something like that.): 
-```
-docker buildx build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE -f docker/prefect-flows/Dockerfile .
-docker push $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE
-```
-
-#### 3.7 Deployment flows
+#### 3.6 Deployment flows
 Make sure that the environment variable are loaded, then run this deployment script:
 ```
-python prefect/deploy.py
+python deploy.py
 ```
 Then, you can see the following three deployments on the Prefect Cloud UI page:
 1. world-earthquake-pipeline: web_to_gcs_to_bq_all/deploy
@@ -162,6 +152,15 @@ The flow `trigger_dbt` will run `dbt build --target (dev|prod) --vars 'is_test_r
 * earthquake_(dev|prod)_mart
   * mart_earthquakes
 
+#### 3.7 Build a docker image and push to GCP Artifact registry for flows
+Go to the root directory (not `docker/prefect-flows`).
+Make sure that the environment variable $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE is loaded.
+
+Build a docker image and push it to GCP Artifact registry. (You may need to `gcloud auth configure-docker europe-west3-docker.pkg.dev --quiet` or something like that.): 
+```
+docker buildx build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE -f docker/prefect-flows/Dockerfile .
+docker push $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE
+```
 
 ### 4. Prefect agent
 We will run the Prefect agent using docker.
