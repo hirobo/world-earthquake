@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from prefect import flow
 
 from flows.utils.web_to_gcs_to_bq import web_to_gcs_to_bq
@@ -14,12 +14,12 @@ def web_to_gcs_to_bq_all(replace=False) -> None:
     - from 1950-01-01: monthly (or weekly)
     """
 
-    start = datetime(1568, 1, 1).date() 
-    end = datetime(1950, 1, 1).date() 
+    start = datetime(1568, 1, 1).date()
+    end = datetime(1950, 1, 1).date()
     web_to_gcs_to_bq(start, end, replace, split_time=False)
 
-    start = datetime(1950, 1, 1).date() 
-    end = datetime.now().date() 
+    start = datetime(1950, 1, 1).date()
+    end = datetime.now().date()
     web_to_gcs_to_bq(start, end, replace, split_time=True)
 
 

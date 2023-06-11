@@ -14,7 +14,7 @@ with open(os.environ["GOOGLE_APPLICATION_CREDENTIALS"], 'r') as file:
     service_account_data = file.read()
 
 credentials_block = GcpCredentials(
-    service_account_info = service_account_data
+    service_account_info=service_account_data
 )
 credentials_block.save(BLOCK_NAME, overwrite=True)
 

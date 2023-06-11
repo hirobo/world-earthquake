@@ -24,7 +24,10 @@ def get_file_path(start_date: date, end_date: date, split_time=True) -> str:
         return f"usgs/earthquake_{start_date}_{end_date}.ndjson"
 
 
-def process_data(start_date: date, end_date: date, replace: bool, split_time: bool) -> None:
+def process_data(start_date: date,
+                 end_date: date,
+                 replace: bool,
+                 split_time: bool) -> None:
     file_path = get_file_path(start_date, end_date, split_time)
     web_to_gcs(start_date, end_date, replace, file_path)
     gcs_to_bq(file_path)
@@ -86,10 +89,10 @@ def upload_to_gcs(ndjson_data, file_path) -> None:
 
 @flow(name="world-earthquake-pipeline: web_to_gcs")
 def web_to_gcs(start_date: date,
-                    end_date: date,
-                    replace: bool,
-                    file_path: str
-                    ) -> None:
+               end_date: date,
+               replace: bool,
+               file_path: str
+               ) -> None:
 
     logger = get_run_logger()
     file_exists = if_file_exists(file_path)
@@ -101,5 +104,3 @@ def web_to_gcs(start_date: date,
         if earthquake_data:
             ndjson_data = convert_to_ndjson(earthquake_data)
             upload_to_gcs(ndjson_data, file_path)
-
-

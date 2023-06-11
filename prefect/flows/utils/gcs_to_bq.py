@@ -151,7 +151,7 @@ def load_data_from_gcs_to_temp_table(file_path) -> str:
 @task(retries=1, log_prints=True)
 def update_bigquery_table(temp_ref):
     logger = get_run_logger()
-    logger.info(f"update_bigquery_table")
+    logger.info("update_bigquery_table")
 
     gcp_credentials = GcpCredentials.load(BLOCK_NAME)
     client = gcp_credentials.get_bigquery_client()
@@ -168,7 +168,7 @@ def update_bigquery_table(temp_ref):
             bigquery.SchemaField("valid_from", "TIMESTAMP", mode="REQUIRED",
                                  description="Timestamp when the record became valid."),
             bigquery.SchemaField("valid_to", "TIMESTAMP",
-                                 description="Timestamp when the record became invalid. NULL if the record is currently valid."),
+                                 description="Timestamp when the record became invalid. NULL if the record is valid."),
             bigquery.SchemaField("hash_value", "INT64", mode="REQUIRED",
                                  description="Hash value of the record calculated using FARM_FINGERPRINT.")
         ])
