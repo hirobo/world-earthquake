@@ -1,0 +1,55 @@
+name: Build and Push Prefect Agent
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev or prod)'     
+        required: true
+        options:
+          - dev
+          - prod
+        default: dev
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set environment variables
+      run: |
+        echo "ARTIFACT_REGISTRY_PROJECT_ID=${{ vars.ARTIFACT_REGISTRY_PROJECT_ID }}" >> $GITHUB_ENV
+        echo "PREFECT_API_URL=${{ vars.PREFECT_API_URL }}" >> $GITHUB_ENV
+        echo "WORK_POOL_NAME=world-earthquake-pipeline-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/setup-gcloud@v0.2.1
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: ${{ vars.ARTIFACT_REGISTRY_PROJECT_ID }}
+        export_default_credentials: true
+
+    - name: Configure Docker
+      run: |
+        gcloud --quiet auth configure-docker europe-west3-docker.pkg.dev
+
+    - name: Print environment variables
+      run: |
+        echo "WORK_POOL_NAME: $WORK_POOL_NAME"
+        echo "PREFECT_API_URL: $PREFECT_API_URL"
+
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        context: docker/prefect-agent
+        push: true
+        tags: europe-west3-docker.pkg.dev/${{ vars.ARTIFACT_REGISTRY_PROJECT_ID }}/world-earthquake-pipeline/prefect-agent:latest
+        build-args: |
+          ARTIFACT_REGISTRY_PROJECT_ID=${{ env.ARTIFACT_REGISTRY_PROJECT_ID }}
+          WORK_POOL_NAME=${{ env.WORK_POOL_NAME }}
+          PREFECT_API_URL=${{ env.PREFECT_API_URL }}
