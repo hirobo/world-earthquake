@@ -83,7 +83,7 @@ Now, a bucket for data lake, a BigQuery dataset for raw data, an Artifact Regist
 
 Do the same things for `prod`.
 
-### 3. Prefect (deploy flows on Prefect Cloud 2.0)
+### 3. Configure Prefect (Prefect Cloud 2.0)
 We will use Prefect Cloud 2.0 for the Prefect server.
 
 #### 3.0 Configure environment variables
@@ -107,7 +107,7 @@ pip install -r requirements.txt
 #### 3.2 GCP Artifact registry
 Enable GCP Artifact Registry API so that we can save our Docker image there.
 
-#### 3.4 Start prefect server
+#### 3.4 Login to prefect server
 Login to the Prefect cloud. (Assuming you already have a workspace.)
 ```
 prefect cloud login
@@ -126,12 +126,23 @@ Create a docker block for flows:
 python blocks/make_docker_block.py 
 ```
 
-#### 3.6 Deployment flows
+#### 3.6 Deploy flows to Prefect Cloud
+There are two ways to deploy flows to Prefect Cloud:
+
+1. execute deploy.py from your terminal 
+2. run GitHUb Action `Deploy Flows`
+
+##### 1. execute deploy.py from your terminal
 Make sure that the environment variable are loaded, then run this deployment script:
 ```
 python deploy.py
 ```
-Then, you can see the following three deployments on the Prefect Cloud UI page:
+##### 2. run GitHUb Action `Deploy Flows`
+(First, you need to configure secrets/valuables on GitHub for each environment `dev`/`prod`. About precise, coming soon.)
+Go to the GitHub repository and choose branch and environment (dev/prod).
+
+
+After the deployment, you can see the following three deployments on the Prefect Cloud UI page:
 1. world-earthquake-pipeline: web_to_gcs_to_bq_all/deploy
 2. world-earthquake-pipeline: web_to_gcs_to_bq_daily/deploy	
 3. world-earthquake-pipeline: web_to_gcs_to_bq_with_params/deploy
@@ -153,6 +164,12 @@ The flow `trigger_dbt` will run `dbt build --target (dev|prod) --vars 'is_test_r
   * mart_earthquakes
 
 #### 3.7 Build a docker image and push to GCP Artifact registry for flows
+There are two ways to deploy flows to Prefect Cloud:
+
+1. build and push from your terminal 
+2. run GitHUb Action `Build and Push Flows Image`
+
+##### Option 1. build and push from your terminal
 Go to the root directory (not `docker/prefect-flows`).
 Make sure that the environment variable $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE is loaded.
 
@@ -161,31 +178,48 @@ Build a docker image and push it to GCP Artifact registry. (You may need to `gcl
 docker buildx build -t $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE -f docker/prefect-flows/Dockerfile .
 docker push $WORLD_EARTHQUAKE_FLOWS_DOCKER_IMAGE
 ```
+##### Option 2. run GitHUb Action `Build and push flows image`
+Go to the GitHub repository and choose branch and environment (dev/prod).
+
 
 ### 4. Prefect agent
 We will run the Prefect agent using docker.
 Working directory is `docker/prefect-agent`.
 
-#### 4.0 Configure Prefect API key/url on the Secret Manager 
-Make GCP Secret Manager (https://cloud.google.com/secret-manage) API available and create two secrets with the following names:
-* prefect-api-key-world-earthquake-pipeline: for Prefect API key
-* prefect-api-url-world-earthquake-pipeline: for Prefect API url
+#### 4.0 Configure Prefect API key on the Secret Manager 
+Make GCP Secret Manager (https://cloud.google.com/secret-manage) API available and create two secrets with the following name:
+* PREFECT_API_KEY: for Prefect API key
 
 On creating the secret for the key, I'll recommend to upload the json file than copying the content.
 If you want to use other names, please edit the `entrypoint.sh` file.
 
-#### 4.1 Configure environment variables 
+#### 4.1 Build a docker image
+There are two ways:
+
+1. run GitHUb Action `Build and push Prefect Agent image` (=> use VM for Prefect Agent)
+2. build image from your terminal
+
+#### Option 1: run GitHUb Action `Build and push Prefect Agent image`
+Go to the GitHUb page and run the workflow `Build and push Prefect Agent image`.
+This will do both build and push.
+
+#### Option 2: build image from your terminal
 Please create `.env` file from this example file `.env.example` and edit it.
 Then, export the variables:
 ```
 export $(grep -v '^#' .env | xargs)
 ```
-#### 4.2 Build a docker image
+
 Build a docker image:
 ```
 docker buildx build -t $PREFECT_AGENT_DOCKER_IMAGE .
 ```
-#### 4.3 Start prefect agent using docker
+And if you want to use the image on VM, push the docker image to the Artifact Registry:
+```
+docker push $PREFECT_AGENT_DOCKER_IMAGE
+```
+
+#### 4.2 Run prefect agent
 There are two options to run the prefect agent.
 1. Run locally (e.g. for development)
 2. Run on a VM instance on the GCP Compute Engine
@@ -198,28 +232,27 @@ docker run -d --name prefect-agent --restart always \
   -v $GOOGLE_APPLICATION_CREDENTIALS:/tmp/key.json:ro \
   -e GOOGLE_APPLICATION_CREDENTIALS=/tmp/key.json \
   -e ARTIFACT_REGISTRY_PROJECT_ID=$ARTIFACT_REGISTRY_PROJECT_ID \
+  -e PREFECT_API_URL=$PREFECT_API_URL \
   $PREFECT_AGENT_DOCKER_IMAGE
 ```
 
 ##### Option 2: Run on a VM instance on the GCP Compute Engine
-Push the docker image to the Artifact Registry:
-```
-docker push $PREFECT_AGENT_DOCKER_IMAGE
-```
+Assume that the docker image is already on the Artifact Registry $PREFECT_AGENT_DOCKER_IMAGE. Then,
+
 Following this instruction, create a VM instance running "Container-Optimized OS" on the GCP Compute Engine:
 https://cloud.google.com/container-optimized-os/docs/how-to/create-configure-instance
 
 Configuration as follows:
 - Container image: $PREFECT_AGENT_DOCKER_IMAGE #e.g europe-west3-docker.pkg.dev/<project_id>/world-earthquake-pipeline/prefect-agent
-- Environment variables:
-  - ARTIFACT_REGISTRY_PROJECT_ID:$ARTIFACT_REGISTRY_PROJECT_ID
 - Volume mounts:
   - /var/run/docker.sock:/var/run/docker.sock
+- Custom metadata:
+  - startup-script: `docker image prune -af`
 
 And then, start the instance. The prefect agent is ready to work for flows!
 
 
-#### 4.4 Run the flows on the Prefect Cloud
+#### 4.3 Run the flows on the Prefect Cloud
 From the Prefect Cloud UI, run the flow `world-earthquake-pipeline: web_to_gcs_to_bq_all`.
 Then, you can see a partitioned table `usgs_data` under the dataset `earthquake_raw`.
 
