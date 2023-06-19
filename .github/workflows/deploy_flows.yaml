@@ -1,0 +1,51 @@
+name: Deploy Flows
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment (dev or prod)'     
+        required: true
+        options:
+          - dev
+          - prod
+        default: dev
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ vars.ARTIFACT_REGISTRY_PROJECT_ID }}
+
+      - name: Get PREFECT_API_KEY from Secret Manager
+        run: |
+          echo "PREFECT_API_KEY=$(gcloud secrets versions access latest --secret=PREFECT_API_KEY)" >> $GITHUB_ENV
+           
+      - name: Set environment variables
+        run: |
+          echo "PREFECT_API_URL=${{ vars.PREFECT_API_URL }}" >> $GITHUB_ENV
+          echo "WORLD_EARTHQUAKE_PROJECT_ID=${{ vars.WORLD_EARTHQUAKE_PROJECT_ID }}" >> $GITHUB_ENV
+          echo "ENV=${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          echo "WORK_POOL_NAME=world-earthquake-pipeline-${{ github.event.inputs.environment }}" >> $GITHUB_ENV
+          
+      - name: Print environment variables
+        run: |
+          echo "ENV: $ENV"
+          echo "WORK_POOL_NAME: $WORK_POOL_NAME"
+          echo "PREFECT_API_URL: $PREFECT_API_URL"
+          echo "WORLD_EARTHQUAKE_PROJECT_ID: $WORLD_EARTHQUAKE_PROJECT_ID"
+
+      - name: Run deployment script
+        working-directory: prefect/
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          python deploy.py
