@@ -3,6 +3,7 @@ import json
 import gcsfs
 import re
 import pandas as pd
+from datetime import datetime, timezone
 from prefect import flow, task, get_run_logger
 from prefect_gcp.cloud_storage import GcsBucket
 from prefect_gcp.bigquery import GcpCredentials, BigQueryWarehouse
@@ -15,6 +16,20 @@ ENV = os.environ.get("ENV")
 BLOCK_NAME = f"{BASE_NAME}-{ENV}"
 RAW_DATASET = "earthquake_raw"
 USGS_TABLE = f"{PROJECT_ID}.{RAW_DATASET}.usgs_data"
+
+
+@task
+def get_last_datetime() -> datetime:
+    query = f"SELECT MAX(properties_time) as last_datetime FROM `{USGS_TABLE}`"
+
+    with BigQueryWarehouse.load(BLOCK_NAME) as warehouse:
+        result = warehouse.fetch_one(query)
+        if result:
+            last_datetime = datetime.fromtimestamp(result['last_datetime'] / 1000, tz=timezone.utc)
+        else:
+            return None
+
+    return last_datetime
 
 
 def get_schema():
