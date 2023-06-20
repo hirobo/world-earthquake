@@ -146,7 +146,7 @@ After the deployment, you can see the following three deployments on the Prefect
 1. world-earthquake-pipeline: web_to_gcs_to_bq_all/deploy
 2. world-earthquake-pipeline: web_to_gcs_to_bq_daily/deploy	
 3. world-earthquake-pipeline: web_to_gcs_to_bq_with_params/deploy
-3. world-earthquake-pipeline: trigger_dbt/deploy
+3. world-earthquake-pipeline: run_dbt/deploy
 
 The flow `web_to_gcs_to_bq_all` will be run only at the first time to load all data from the year 1958 to yesterday.
 
@@ -154,7 +154,7 @@ The flow `web_to_gcs_to_bq_daily` is scheduled on 5:00 o'clock (UTC) every day t
 
 The flow `web_to_gcs_to_bq_with_params` will be used if you want to update data which was not updated because of some errors.
 
-The flow `trigger_dbt` will run `dbt build --target (dev|prod) --vars 'is_test_run: false'` to update BigQuery tables under the following datasets:
+The flow `run_dbt` will run `dbt build --target (dev|prod) --vars 'is_test_run: false'` to update BigQuery tables under the following datasets:
 
 * earthquake_(dev|prod)_stg
   * stg_usgs
@@ -258,6 +258,6 @@ Then, you can see a partitioned table `usgs_data` under the dataset `earthquake_
 
 The flow `world-earthquake-pipeline: web_to_gcs_to_bq_daily` is scheduled on every 05:00 (UTC) every day to update data in `earthquake_raw` yesterday.
 
-The flow `world-earthquake-pipeline: trigger_dbt` is scheduled on every 05:05 (UTC) every day to update tables under the datasets `earthquake_(dev|prod)_(stg|dwh|mart)` incrementally.
+The flow `world-earthquake-pipeline: run_dbt` is scheduled on every 05:05 (UTC) every day to update tables under the datasets `earthquake_(dev|prod)_(stg|dwh|mart)` incrementally.
 
 With these steps, your data pipeline is now complete, and you can use the BigQuery table `earthquake_(dev|prod)_mart.mart_earthquake` to create a dashboard to visualize earthquake-prone regions and other trends.
