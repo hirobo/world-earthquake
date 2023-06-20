@@ -1,4 +1,4 @@
-name: Build and Push Prefect Agent
+name: Build and push Prefect Agent image
 
 on:
   workflow_dispatch:
@@ -14,6 +14,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ github.event.inputs.environment }}
 
     steps:
     - uses: actions/checkout@v2
