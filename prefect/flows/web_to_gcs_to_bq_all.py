@@ -3,6 +3,10 @@ from prefect import flow
 
 from flows.utils.web_to_gcs_to_bq import web_to_gcs_to_bq
 
+# Define constants for the special years
+YEAR_START = 1568
+YEAR_SPLIT = 1950
+
 
 @flow(name="world-earthquake-pipeline: web_to_gcs_to_bq_all")
 def web_to_gcs_to_bq_all(replace=False) -> None:
@@ -14,11 +18,13 @@ def web_to_gcs_to_bq_all(replace=False) -> None:
     - from 1950-01-01: monthly (or weekly)
     """
 
-    start = datetime(1568, 1, 1).date()
-    end = datetime(1950, 1, 1).date()
+    # Fetch data from YEAR_START till YEAR_SPLIT in one go
+    start = datetime(YEAR_START, 1, 1).date()
+    end = datetime(YEAR_SPLIT, 1, 1).date()
     web_to_gcs_to_bq(start, end, replace, split_time=False)
 
-    start = datetime(1950, 1, 1).date()
+    # Fetch data from YEAR_SPLIT till now in monthly (or weekly) splits
+    start = datetime(YEAR_SPLIT, 1, 1).date()
     end = datetime.now().date()
     web_to_gcs_to_bq(start, end, replace, split_time=True)
 

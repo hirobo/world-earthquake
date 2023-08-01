@@ -13,9 +13,7 @@ DBT_PROFILES_DIR = "../dbt"  # we don't use ~/.dbt
 @flow(name="world-earthquake-pipeline: run_dbt")
 def run_dbt(full_refresh: bool = False) -> str:
 
-    command = f"dbt build --target {ENV} --vars 'is_test_run: false'"
-    if full_refresh:
-        command = f"dbt build --target {ENV} --vars 'is_test_run: false' --full-refresh"
+    command = f"dbt build --target {ENV} --vars 'is_test_run: false'{' --full-refresh' if full_refresh else ''}"
 
     result = DbtCoreOperation(
         commands=[command],

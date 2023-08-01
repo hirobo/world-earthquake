@@ -20,6 +20,9 @@ USGS_TABLE = f"{PROJECT_ID}.{RAW_DATASET}.usgs_data"
 
 @task
 def get_last_datetime() -> datetime:
+    """
+    Get the latest datetime from the BigQuery table.
+    """
     query = f"SELECT MAX(properties_time) as last_datetime FROM `{USGS_TABLE}`"
 
     with BigQueryWarehouse.load(BLOCK_NAME) as warehouse:
@@ -32,7 +35,7 @@ def get_last_datetime() -> datetime:
     return last_datetime
 
 
-def get_schema():
+def get_schema() -> list:
     return [
         bigquery.SchemaField("id", "STRING", mode="REQUIRED"),
         bigquery.SchemaField("type", "STRING"),
