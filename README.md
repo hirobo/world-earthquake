@@ -14,7 +14,7 @@ Since then, the project has been modified to incorporate data from the United St
 https://earthquake.usgs.gov/fdsnws/event/1/
 
 ## Dashboard
-You can view the dashboard here (still work in progress):
+You can view the dashboard here:
 
 https://lookerstudio.google.com/reporting/5e439dd9-ceae-4785-875c-775af8e50e6f
 
